@@ -1,0 +1,16 @@
+---
+# Example of how to add localhost to the inventory file if necessary.
+# all:
+#   hosts:
+#     localhost:
+#       ansible_connection: local
+
+# VM managed by vagrant with the libvirt provider.
+webservers:
+  hosts:
+    vagrant1:
+      ansible_host: 192.168.121.85
+    vagrant2:
+      ansible_host: 192.168.121.82
+    vagrant3:
+      ansible_host: 192.168.121.98

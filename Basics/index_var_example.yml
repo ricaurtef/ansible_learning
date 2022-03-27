@@ -1,0 +1,23 @@
+---
+# Example extracted from the official ansible site.
+# To keep track of where you are in a loop.
+
+
+- name: Tracking progress through a loop with index_var.
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Count our fruit.
+      ansible.builtin.debug:
+        msg: >
+          '{{ item }} with index {{ my_index + 1 }}/{{ ansible_loop.length }}.'
+      loop:
+        - apple
+        - banana
+        - pear
+      loop_control:
+        index_var: my_index
+        pause: 3
+        extended: yes

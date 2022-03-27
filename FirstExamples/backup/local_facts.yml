@@ -1,0 +1,17 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Showing how to make use of local facts.
+  hosts: localhost
+  tasks:
+    - name: Print ansible_local.
+      debug:
+        var: ansible_local
+
+    - name: Print owner's name.
+      debug:
+        msg: "My son's name: {{ ansible_local.personal_data.family[1] }}"
+
+    - name: Testing how ansible_check_mode works.
+      debug:
+        msg: Matías Daniel Ricaurte Itriago
+      when: ansible_check_mode

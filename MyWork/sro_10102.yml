@@ -1,0 +1,41 @@
+---
+- name: Check fraud card creation for FT.
+  hosts: all
+  gather_facts: true
+
+
+  vars:
+    db_user: data_export
+    db_password: '{{ db_password }}'
+    db_database: '{{ db_database }}'
+    mail_to: '{{ email }}'
+
+
+  tasks:
+    - name: Get the lastest results.
+      mysql_query:
+        login_db: '{{ db_database }}'
+        login_user: '{{ db_user }}'
+        login_password: '{{ db_password }}'
+        query: '{{ db_query }}'
+      register: db
+
+    - debug:
+        msg: '{{ item }}'
+      loop: '{{ db.query_result | flatten(levels=1) }}'
+      when: item.credit_card_holder_name == 'way ne'
+
+
+  post_tasks:
+    - name: Email report.
+      local_action:
+        module: mail
+        to: '{{ mail_to }}'
+        subject: 'SRO-10102: "Query Result"'
+        body: |-
+          {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
+          Authorized count = {{ item.authorized_count }}
+          Credit card holder name = {{ item.credit_card_holder_name }}
+      loop: '{{ db.query_result | flatten(levels=1) }}'
+      when: item.credit_card_holder_name == 'way ne'
+...

@@ -1,0 +1,48 @@
+---
+- name: Install apache package.
+  ansible.builtin.apt:
+    pkg: '{{ apache_pkg }}'
+    state: present
+
+- name: Start and enable apache service.
+  ansible.builtin.service:
+    name: '{{ apache_pkg }}'
+    state: started
+    enabled: true
+
+- name: Configure apache.
+  ansible.builtin.lineinfile:
+    path: '{{ apache_cfg }}'
+    line: 'ServerName {{ ansible_hostname }}'
+    insertafter: '#ServerName'
+  notify: Restart Apache.
+
+- name: Secure defaul ACL for apache user on document root.
+  ansible.posix.acl:
+    path: /var/www/html
+    entity: '{{ apache_user }}'
+    etype: user
+    state: present
+    permissions: rx
+    default: true
+
+- name: Secure default ACL for others on document root.
+  ansible.posix.acl:
+    path: /var/www/html
+    entry: default:others::---
+    state: present
+
+- name: Set read and execute permissions on document root for apache user.
+  ansible.posix.acl:
+    path: /var/www/html
+    entity: '{{ apache_user }}'
+    etype: user
+    state: present
+    permissions: rx
+
+- name: Set permissions to others to nothing on document root.
+  ansible.posix.acl:
+    path: /var/www/html
+    entry: others::---
+    state: present
+...

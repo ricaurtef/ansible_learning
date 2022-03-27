@@ -1,0 +1,4 @@
+---
+- name: This is the first test file.
+  ansible.builtin.debug:
+    msg: Test file 1.

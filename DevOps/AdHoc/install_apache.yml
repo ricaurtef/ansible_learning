@@ -1,0 +1,37 @@
+---
+- name: Install Apache Web Server on RHEL-based OSes.
+  hosts: '*'
+  become: true
+  gather_facts: false
+
+
+  tasks:
+    - name: Install Apache.
+      ansible.builtin.yum:
+        state: present
+        pkg:
+          - httpd
+          - httpd-devel
+
+    - name: Copy configuration files.
+      ansible.builtin.copy:
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - src: httpd.conf
+          dest: /etc/httpd/conf/httpd.conf
+        - src: httpd-vhosts.conf
+          dest: /etc/httpd/conf/httpd-vhosts.conf
+      notify: Restart Apache
+
+
+  handlers:
+    - name: Restart Apache
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: true
+...

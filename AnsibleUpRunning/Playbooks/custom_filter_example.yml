@@ -1,0 +1,14 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Surround by quote example.
+  hosts: vagrant1
+  gather_facts: false
+
+  tasks:
+    - ansible.builtin.debug:
+        msg: '{{ foo | surround_by_quotes | join(", ") }}'
+      vars:
+        foo:
+          - 192.168.0.3
+          - 192.168.0.4
+          - 192.168.0.5

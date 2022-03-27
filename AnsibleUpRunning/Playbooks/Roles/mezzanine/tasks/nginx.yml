@@ -1,0 +1,35 @@
+---
+- name: Set the nginx config file.
+  ansible.builtin.template:
+    src: nginx.conf.jinja
+    dest: /etc/nginx/sites-available/mezzanine.conf
+    mode: '0644'
+  notify: Restart nginx.
+  become: true
+
+- name: Enable the nginx config file.
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/mezzanine.conf
+    dest: /etc/nginx/sites-enabled/mezzanine.conf
+    state: link
+  notify: Restart nginx.
+  become: true
+
+- name: Remove the default nginx config file.
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Restart nginx.
+  become: true
+
+- name: Create TLS certificates.
+  ansible.builtin.command:
+    cmd: >
+      openssl req -new -x509 -nodes -out {{ mezzanine_proj_name }}.crt
+      -keyout {{ mezzanine_proj_name }}.key -subj '/CN={{ domains[0] }}'
+      -days 3650
+    chdir: '{{ mezzanine_conf_path }}'
+    creates: '{{ mezzanine_conf_path }}/{{ mezzanine_proj_name }}.crt'
+  notify: Restart nginx.
+  when: tls_enabled
+  notify: Restart nginx.

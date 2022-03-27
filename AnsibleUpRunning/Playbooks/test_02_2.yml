@@ -1,0 +1,5 @@
+---
+- name: This is the second test file.
+  ansible.builtin.debug:
+    msg: Test file 2.
+# This is a test.

@@ -1,0 +1,3 @@
+---
+tmp_dir: '/tmp'
+tmp_file: 'install_docker.sh'

@@ -1,0 +1,11 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Example of lookups (pipe)
+  hosts: vagrant1
+  gather_facts: false
+
+  tasks:
+    - name: Get the path of the vagrant identity file.
+      ansible.builtin.debug:
+        msg: >-  # '-' No \n at the end of the line.
+          {{ lookup('pipe', 'vagrant ssh-config vagrant1 | grep -i identity') }}.

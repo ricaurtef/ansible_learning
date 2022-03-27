@@ -1,0 +1,15 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Install Python requirements globally via pip.
+  hosts: webservers
+  gather_facts: false
+
+  tasks:
+    - name: Install list of python packages.
+      ansible.builtin.pip:
+        state: latest
+        name:
+          - pip
+          - virtualenv
+          - virtualenvwrapper
+      become: true

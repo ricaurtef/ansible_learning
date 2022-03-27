@@ -1,0 +1,28 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Setup apache on a Centos host.
+  hosts: webservers
+  remote_user: ansible
+  gather_facts: False
+  become: True
+  tasks:
+    - name: Ensure the HTTPd package is installed.
+      yum:
+        pkg: httpd
+        state: present
+
+    - name: Ensure the HTTPd service is enabled and running.
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Ensure HTTP and HTTPS can pass the firewall.
+      firewalld:
+        service: '{{ item }}'
+        state: enabled
+        permanent: yes
+        immediate: yes
+      loop:
+        - http
+        - https

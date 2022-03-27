@@ -1,0 +1,17 @@
+---
+app:
+  hosts:
+    app1:
+      ansible_host: 192.168.121.30
+    app2:
+      ansible_host: 192.168.121.54
+
+db:
+  hosts:
+    db1:
+      ansible_host: 192.168.121.184
+
+multi:
+  children:
+    app:
+    db:

@@ -1,0 +1,12 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Show return value of command module.
+  hosts: vagrant1
+  gather_facts: False
+  tasks: 
+    - name: Capture output of id command.
+      command: id -un
+      register: login
+
+    - debug:
+        msg: Logged in as user {{ login.stdout | upper }}

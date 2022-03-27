@@ -1,0 +1,13 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Ansible way to set and get variables.
+  hosts: test_centos
+  tasks:
+    - name: Set variable 'name'.
+      set_fact:
+        name: Test machine.
+
+    - name: Print variable 'name'.
+      debug:
+        var: name
+        verbosity: 1

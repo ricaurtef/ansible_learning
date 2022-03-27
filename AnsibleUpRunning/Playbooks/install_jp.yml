@@ -1,0 +1,20 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: "Install 'jp' the command line interface to JMESPath."
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: false
+
+  vars:
+    version: 0.2.1
+    url: "https://github.com/jmespath/jp/releases/download/{{ version }}/\
+          jp-linux-amd64"
+  tasks:
+    # TODO; Figure out how to automatically get the latest version.
+    - name: Download the binary.
+      ansible.builtin.get_url:
+        url: '{{ url }}'
+        dest: /usr/local/bin/jp
+        owner: root
+        mode: '0755'
+      become: true

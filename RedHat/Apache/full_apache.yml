@@ -1,0 +1,20 @@
+---
+- name: Mange Apache Deployment.
+  hosts: all
+  become: true
+
+
+  roles:
+    - apache
+    - firewall
+    - standard_web
+    - geerlingguy.php
+
+
+  tasks:
+    - name: Add phpinfo page.
+      ansible.builtin.copy:
+        dest: /var/www/html/test.php
+        content: '<?php phpinfo(); ?>'
+        mode: '0644'
+...

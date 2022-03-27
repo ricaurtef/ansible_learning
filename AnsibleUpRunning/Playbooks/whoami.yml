@@ -1,0 +1,16 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Show return value of command module.
+  hosts: vagrant1
+  gather_facts: false
+
+  tasks:
+    - name: Capture output of id command.
+      ansible.builtin.command:
+        cmd: id -un
+      register: login
+
+    # Output of the login varible.
+    # Keep in mind: Registered variables are always dictionaries.
+    - ansible.builtin.debug:
+        msg: 'Logged in as user: {{ login.stdout }}.'

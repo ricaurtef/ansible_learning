@@ -1,0 +1,10 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Pass a message on the command line.
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Output a message.
+      debug:
+        msg: '{{ greeting | default("You did not specify a message.") }}'

@@ -1,0 +1,64 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Tasks common to all hosts.
+  hosts: all
+  remote_user: ansible
+  become: True
+  tasks:
+    - name: Ensure EPEL is enabled.
+      yum:
+        pkg: epel-release
+        state: present
+
+    - name: Upgrade all installed packages.
+      yum:
+        pkg: '*'
+        state: latest
+
+    - name: Install python bindings for SELinux.
+      yum:
+        pkg:
+          - python3-libselinux
+          - python3-libsemanage
+        state: present
+
+    - name: Install Chrony NTP package.
+      yum:
+        pkg: chrony
+        state: present
+
+    - name: Enable Chrony to act as an NTP client.
+      service:
+        name: chronyd
+        state: started
+        enabled: yes
+
+    - name: Install FirewallD.
+      yum:
+        pkg: firewalld
+        state: present
+
+    - name: Enable FirewallD.
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Allow SSH connections through the firewall.
+      firewalld:
+        service: ssh
+        state: enabled
+        permanent: yes
+        immediate: yes
+
+    - name: Ensure the MOTD file is present and updated.
+      template:
+        src: templates/motd.j2
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Ensure the hostname is the same of the inventory.
+      hostname:
+        name: '{{ inventory_hostname }}'

@@ -1,0 +1,13 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: ansible_local example.
+  hosts: localhost
+
+  tasks:
+    - ansible.builtin.debug:
+        var: ansible_local
+
+    - ansible.builtin.debug:
+        msg: >
+          This equipment is owned by {{ ansible_local.rubinho.name | title }}
+          {{ ansible_local.rubinho.last_name | title }}

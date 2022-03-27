@@ -1,0 +1,32 @@
+---
+- name: Handlers in Pre and Post Tasks.
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  pre_tasks:
+    - name: Handlers in pre_tasks.
+      ansible.builtin.command:
+        cmd: echo Pre-Tasks
+      notify: Print message.
+
+
+  tasks:
+    - name: Handlers in tasks.
+      ansible.builtin.command:
+        cmd: echo Tasks
+      notify: Print message.
+
+
+  post_tasks:
+    - name: Handlers in post_tasks.
+      ansible.builtin.command:
+        cmd: echo Post-Tasks
+      notify: Print message.
+
+
+  handlers:
+    - name: Print message.
+      ansible.builtin.command:
+        cmd: echo Handler executed.
+...

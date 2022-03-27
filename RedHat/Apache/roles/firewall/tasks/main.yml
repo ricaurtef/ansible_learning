@@ -1,0 +1,35 @@
+---
+- name: Firewall package.
+  ansible.builtin.apt:
+    pkg: '{{ firewall_pkg }}'
+    state: present
+
+- name: Firewall service.
+  ansible.builtin.service:
+    name: '{{ firewall_pkg }}'
+    enabled: true
+    state: started
+
+- name: UFW ubuntu.
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    rule: allow
+    port: '{{ item }}'
+    proto: tcp
+  loop:
+    - '{{ service_name }}'
+    - 'ssh'
+  when: ansible_distribution | lower() == 'ubuntu'
+
+- name: Firewalld centos.
+  ansible.posix.firewalld:
+    service: '{{ item }}'
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - '{{ service_name }}'
+    - 'ssh'
+  when: ansible_distribution | lower() == 'centos'
+...

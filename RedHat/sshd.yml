@@ -1,0 +1,30 @@
+---
+- name: Manage SSHD.
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Ensure SSHD is started and enabled.
+      ansible.builtin.service:
+        name: sshd
+        enabled: true
+        state: started
+      become: true
+
+    - name: Edit SSHD config.
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regex: '^PermitRootLogin '
+        insertafter: '#PermitRootLogin'
+        line: 'PermitRootLogin no'
+      become: true
+      notify: Restart SSHD.
+
+
+  handlers:
+    - name: Restart SSHD.
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+      become: true
+...

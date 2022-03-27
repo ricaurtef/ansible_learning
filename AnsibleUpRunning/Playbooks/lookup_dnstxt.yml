@@ -1,0 +1,11 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Query a DNS server for a TXT record.
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    # dnspython must be installed for this to work: pip3 install dnspython.
+    - name: Look up TXT record.
+      ansible.builtin.debug:
+        msg: '{{ lookup("dnstxt", "ansiblebook.com") }}'

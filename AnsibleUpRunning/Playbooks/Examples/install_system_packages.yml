@@ -1,0 +1,29 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Install apt packages.
+  hosts: webservers
+  gather_facts: false
+
+  tasks:
+    # This way the apt module will be invoked just once, due to the way
+    # apt handles a list of packages. Notice how there's no need to explicitly
+    # create a loop now.
+    - name: Install list of packages.
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+        state: present
+        become: true
+        pkg:
+          - git
+          - libjpeg-dev
+          - libpq-dev
+          - memcached
+          - nginx
+          - postgresql
+          - python-dev
+          - python-pip
+          - python-psycopg2
+          - python-setuptools
+          - python-virtualenv
+          - supervisor

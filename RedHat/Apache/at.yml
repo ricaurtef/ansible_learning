@@ -1,0 +1,27 @@
+---
+- name: 'Create "at" job.'
+  hosts: all
+  become: true
+  gather_facts: false
+
+
+  vars:
+    users_files:
+      - /etc/passwd
+      - /etc/group
+      - /etc/shadow
+
+
+  roles:
+    - atd
+
+
+  tasks:
+    - name: Backup users database tomorrow.
+      ansible.posix.at:
+        command: >
+          tar -czf /root/users.tgz {{ users_files | join(' ') }}
+        count: 5
+        units: minutes
+        unique: true
+...

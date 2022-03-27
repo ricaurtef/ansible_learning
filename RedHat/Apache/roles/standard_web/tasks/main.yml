@@ -1,0 +1,14 @@
+---
+- name: Copy web content.
+  ansible.builtin.copy:
+    src: files/web/   # Copy directory content as rsync.
+    directory_mode: true
+    dest: /var/www/html
+    mode: '0640'
+
+- name: Custom web content.
+  ansible.builtin.template:
+    src: templates/server.jinja
+    dest: /var/www/html/server.html
+    mode: '0640'
+...

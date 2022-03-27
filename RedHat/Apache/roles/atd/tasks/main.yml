@@ -1,0 +1,13 @@
+---
+- name: Install AT.
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    pkg: at
+    state: present
+
+- name: Manage ATD.
+  ansible.builtin.service:
+    name: atd
+    enabled: true
+    state: started

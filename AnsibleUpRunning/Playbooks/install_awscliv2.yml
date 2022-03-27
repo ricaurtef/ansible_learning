@@ -1,0 +1,36 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Install AWS CLI version 2.
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: false
+
+  vars:
+    url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+
+  tasks:
+    - name: Create a temporary directory to contain the awscli zip file.
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: aws_
+      register: dir
+
+    - ansible.builtin.set_fact:
+        tmpdir: '{{ dir.path }}'
+
+    - name: Download the awscli zip file into {{ tmpdir }}.
+      ansible.builtin.get_url:
+        url: '{{ url }}'
+        dest: '{{ tmpdir }}/awscliv2.zip'
+
+    - name: Unzip awscli zip file.
+      ansible.builtin.unarchive:
+        src: '{{ tmpdir }}/awscliv2.zip'
+        dest: '{{ tmpdir }}'
+        remote_src: yes
+
+    - name: Install awscliv2.
+      ansible.builtin.command:
+        cmd: bash install
+        chdir: '{{ tmpdir }}/aws'
+      become: true

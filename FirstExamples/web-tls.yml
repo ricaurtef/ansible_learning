@@ -1,0 +1,57 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Configure webserver with nginx.
+  hosts: webservers
+  become: True
+  vars_files:
+    - nginx.yml
+  tasks:
+    - name: Install nginx.
+      apt:
+        pkg: nginx
+        cache_valid_time: 3600
+        state: present 
+
+    - name: Create directories for ssl certificates.
+      file:
+        path: /etc/nginx/ssl
+        state: directory
+
+    - name: Copy TLS key.
+      copy:
+        src: files/nginx.key
+        dest: "{{ nginx.key_file }}"
+        owner: root
+        mode: 0600
+      notify: restart nginx
+
+    - name: Copy TLS certificate.
+      copy: 
+        src: files/nginx.crt 
+        dest: "{{ nginx.cert_file }}"
+      notify: restart nginx
+
+    - name: Copy nginx config file.
+      template:
+        src: templates/nginx.conf.j2
+        dest: "{{ nginx.conf_file }}"
+
+    - name: Enable configuration.
+      file: 
+        src: "{{ nginx.conf_file }}"
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+      notify: restart nginx
+
+    - name: Copy index.html.
+      template:
+        src: templates/index.html.j2
+        dest: /usr/share/nginx/html/index.html
+        mode: 0644
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+

@@ -1,0 +1,8 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Gathering information through facts.
+  hosts: test_centos
+  tasks:
+    - name: Print OS and version.
+      debug:
+        msg: '{{ ansible_distribution }}: {{ ansible_distribution_version }}'

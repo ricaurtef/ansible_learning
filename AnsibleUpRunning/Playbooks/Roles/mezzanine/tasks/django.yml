@@ -1,0 +1,92 @@
+---
+- name: Create a logs directory.
+  ansible.builtin.file:
+    path: '{{ ansible_env.HOME }}/logs'
+    state: directory
+
+- name: Check out the repository on the host.
+  ansible.builtin.git:
+    repo: '{{ mezzanine_repo_url }}'
+    dest: '{{ mezzanine_proj_path }}'
+    accept_hostkey: key
+
+- name: Install Python requirements globally via pip.
+  ansible.builtin.pip:
+    state: latest
+    name:
+      - pip
+      - virtualenv
+      - virtualenvwrapper
+
+- name: Install required python packages.
+  ansible.builtin.pip:
+    virtualenv: '{{ mezzanine_venv_path }}'
+    name:
+      - gunicorn
+      - setproctitle
+      - psycopg2
+      - django-compressor
+      - python-memcached
+
+- name: Install the requirements.txt file.
+  ansible.builtin.pip:
+    requirements: '{{ mezzanine_proj_path }}/{{ mezzanine_reqs_path }}'
+    virtualenv: '{{ mezzanine_venv_path }}'
+
+- name: Generate the settings file.
+  ansible.builtin.template:
+    src: local_settings.py.jinja
+    dest: '{{ mezzanine_proj_path }}/local_settings.py'
+
+. name: Apply migrations to create the dateabase, collect static content.
+  community.general.django_manage:
+    command: '{{ item }}'
+    project_path: '{{ mezzanine_proj_path }}'
+    virtualenv: '{{ mezzanine_venv_path }}'
+  loop:
+    - migrate
+    - collectstatic
+
+- name: Set the site id.
+  ansible.builtin.script:
+    cmd: scripts/setsite.py
+  environment:
+    PATH: '{{ mezzanine_venv_path }}/bin'
+    PROJECT_DIR: '{{ mezzanine_proj_path }}'
+    PROJECT_APP: '{{ mezzanine_proj_app }}'
+    WEBSITE_DOMAIN: '{{ live_hostname }}'
+
+- name: Set the admin password.
+  ansible.builtin.script:
+    cmd: scripts/setadmin.py
+  environment:
+    PATH: '{{ mezzanine_venv_path }}/bin'
+    PROJECT_DIR: '{{ mezzanine_proj_path }}'
+    PROJECT_APP: '{{ mezzanine_proj_app }}'
+    ADMIN_PASSWORD: '{{ admin_pass }}'
+
+- name: Set the gunicorn config file.
+  ansible.builtin.template:
+    src: gunicorn.conf.py.jinja
+    dest: '{{ mezzanine_proj_path }}/gunicorn.conf.py'
+
+- name: Set the supervisor config file.
+  ansible.builtin.template:
+    src: supervisor.conf.jinja
+    dest: /etc/supervisor/conf.d/mezzanine.conf
+  become: true
+  notify: Restart supervisor.
+
+- name: Ensure config path exists.
+  ansible.builtin.file:
+    path: '{{ mezzanine_conf_path }}'
+    state: directory
+  become: true
+  when: tls_enabled
+
+- name: Install poll twitter cron job.
+  ansible.builtin.cron:
+    name: Poll twitter
+    minute: '*/5'
+    user: '{{ mezzanine_user }}'
+    job: '{{ mezzanine_manage }} poll_twitter'

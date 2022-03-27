@@ -1,0 +1,44 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Install vagrant with libvirt support.
+  hosts: localhost
+  vars:
+    vagrant_server_host: releases.hashicorp.com
+    vagrant_release: 2.2.18
+    vagrant_arch: x86_64
+
+  pre_tasks:
+    - name: Update apt cache.
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      become: yes
+
+    - name: Install required packages.
+      apt:
+        pkg:
+          - qemu-system
+          # - libvirt-clients
+          # - libvirt-daemon-system
+          # - libvirt-bin # delete
+          # - ubuntu-vm-builder # delete
+          # - bridge-utils # delete
+          - libvirt-dev
+        state: present
+      become: yes
+
+  tasks:
+    - name: Download and install vagrant deb file.
+      apt:
+        deb: >-
+          https://{{ vagrant_server_host }}/vagrant/{{ vagrant_release }}/vagrant_{{ vagrant_release }}_{{ vagrant_arch }}.deb
+      become: yes
+
+    - name: Install vagrant libvirt plugin.
+      shell:
+        cmd: vagrant plugin install vagrant-libvirt
+        creates: "{{ ansible_env.HOME }}/.vagrant.d/vagrant_libvirt.txt"
+      environment:
+        CONFIGURE_ARGS: >
+          with-libvirt-include=/usr/include/libvirt
+          with-libvirt-lib=/usr/lib

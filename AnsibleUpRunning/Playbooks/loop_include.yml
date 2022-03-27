@@ -1,0 +1,12 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: 'Example of include + loop.'
+  hosts: vagrant1
+  gather_facts: false
+
+  tasks:
+    - name: Include multiple tasks using loop.
+      ansible.builtin.include: '{{ item }}'
+      loop:
+        - test_01.yml
+        - test_02.yml

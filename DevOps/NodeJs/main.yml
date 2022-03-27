@@ -1,0 +1,75 @@
+---
+- name: Node.js App on RHEL-based OSEs.
+  hosts: '*'
+  # gather_facts: false
+  become: true
+
+
+  vars:
+    node_apps_location: /usr/local/opt/node
+
+
+  tasks:
+    - name: Install EPEL repo.
+      ansible.builtin.dnf:
+        pkg: epel-release
+        state: present
+
+    - name: Import Remi GPG key.
+      ansible.builtin.rpm_key:
+        key: 'https://rpms.remirepo.net/RPM-GPG-KEY-remi2018'
+        state: present
+
+    - name: Install Remi repo.
+      ansible.builtin.dnf:
+        pkg: 'https://rpms.remirepo.net/enterprise/remi-release-8.rpm'
+        state: present
+
+    - name: Ensure firewalld is stopped (since this is for testing).
+      ansible.builtin.service:
+        name: firewalld
+        state: stopped
+
+    - name: Install Node.js and npm.
+      ansible.builtin.dnf:
+        pkg: npm
+        state: present
+        enablerepo: epel
+
+    - name: Ensure Node.js app folder exists.
+      ansible.builtin.file:
+        path: '{{ node_apps_location }}'
+        state: directory
+        mode: '0750'
+
+    - name: Copy example Node.js app to server.
+      ansible.builtin.copy:
+        src: app
+        dest: '{{ node_apps_location }}'
+        mode: '0750'
+
+    - name: Install Forever (to run our Node.js app).
+      community.general.npm:
+        name: forever
+        global: true
+        state: present
+
+    - name: Install app dependencies defined in package.json.
+      community.general.npm:
+        path: '{{ node_apps_location }}/app'
+
+    - block:
+        - name: Check list of running Node.js apps.
+          ansible.builtin.command:
+            cmd: forever list
+          register: forever_list
+          changed_when: >
+            forever_list.stdout is search("No forever processes running")
+
+        - name: Start example Node.js app.
+          ansible.builtin.command:
+            cmd: 'forever start {{ node_apps_location }}/app/app.js'
+          when: forever_list is changed
+      environment:
+        PATH: '{{ ansible_env.PATH }}:/usr/local/bin'
+...

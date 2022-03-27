@@ -1,0 +1,24 @@
+---
+- name: Install apt packages.
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    pkg:
+      - git
+      - libjpeg-dev
+      - libpq-dev
+      - memcached
+      - nginx
+      - python-dev
+      - python-pip
+      - python-psycopg2
+      - python-setuptools
+      - python-virtualenv
+      - supervisor
+    become: true
+
+- name: Include the django and nginx tasks.
+  ansible.builtin.include: '{{ item }}'
+  loop:
+    - django.yml
+    - nginx.yml

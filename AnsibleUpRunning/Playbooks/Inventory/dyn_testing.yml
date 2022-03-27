@@ -1,0 +1,4 @@
+---
+# Example of a dynamic inventory.
+plugin: community.libvirt.libvirt
+uri: 'qemu+unix:///system'

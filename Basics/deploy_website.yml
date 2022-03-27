@@ -1,0 +1,14 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Push a website.
+  hosts: webservers
+  remote_user: ansible
+  become: True
+  tasks:
+    - name: Ensure the website is present and updated.
+      template:
+        src: templates/index.html.j2
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644

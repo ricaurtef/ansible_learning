@@ -1,0 +1,33 @@
+# An error handling example.
+# Skeleton:
+# - block:
+#     - ansible.builtin.debug:
+#         msg: You wwll see a failed tasks right after this.
+#     - ansible.builtin.command:
+#         cmd: /bin/false
+#     - ansible.builtin.debug:
+#         msg: You will not see this message.
+#   rescue:
+#     - ansible.builtin.debug:
+#         msg: You only see this message in case of a failure in the block.
+#   always:
+#     - ansible.builtin.debug:
+#         msg: This will be always executed.
+---
+- hosts: app_servers
+  serial: 1
+
+  tasks:
+    - name: Take VM out of the load balancer.
+    - name: Create a VM snapshot before the app upgrade.
+
+    - block:
+        - name: Upgrade the application.
+        - name: Run smoke tests.
+
+      rescue:
+        - name: Revert a VM to the snapshot after a failed upgrade.
+
+      always:
+        - name: Re-add webserver to the loadbalancer.
+        - name: Remove a VM  snapshot.

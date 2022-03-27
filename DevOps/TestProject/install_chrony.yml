@@ -1,0 +1,18 @@
+---
+- hosts: all
+  gather_facts: false
+  become: true
+
+
+  tasks:
+    - name: Ensure chrony (for time synchronization) is installed.
+      ansible.builtin.yum:
+        pkg: chrony
+        state: present
+
+    - name: Ensure chrony is running.
+      ansible.builtin.service:
+        name: chronyd
+        state: started
+        enabled: yes
+...

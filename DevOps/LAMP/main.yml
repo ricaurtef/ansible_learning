@@ -1,0 +1,193 @@
+---
+- name: Drupal LAMP Server.
+  hosts: all
+  gather_facts: false
+  become: true
+
+
+  vars_files:
+    - vars.yml
+
+
+  pre_tasks:
+    - name: Update apt cache if needed.
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+
+  tasks:
+    # Basic LAMP server setup.
+    - name: Get software for apt repository management.
+      ansible.builtin.apt:
+        state: present
+        pkg:
+          - python3-apt
+          - python3-pycurl
+
+    - name: Add ondrej repository for later versions of PHP.
+      ansible.builtin.apt_repository:
+        repo: ppa:ondrej/php
+        update_cache: true
+
+    - name: 'Install Apache, MySQL, PHP, and other dependencies.'
+      ansible.builtin.apt:
+        state: present
+        pkg:
+          - acl
+          - git
+          - curl
+          - unzip
+          - sendmail
+          - apache2
+          - php7.4
+          - php7.4-common
+          - php7.4-cli
+          - php7.4-dev
+          - php7.4-gd
+          - php7.4-curl
+          - php7.4-json
+          - php7.4-opcache
+          - php7.4-xml
+          - php7.4-mbstring
+          - php7.4-pdo
+          - php7.4-mysql
+          - php-apcu
+          - libpcre3-dev
+          - libapache2-mod-php7.4
+          - python3-mysqldb
+          - mysql-server
+
+    - name: Disable the firewall (since this is for local dev only).
+      ansible.builtin.service:
+        name: ufw
+        state: stopped
+
+    - name: 'Start Apache, MySQL, and PHP.'
+      ansible.builtin.service:
+        name: '{{ item }}'
+        state: started
+        enabled: true
+      loop:
+        - apache2
+        - mysql
+
+    # Configure Apache.
+    - name: Enable Apache rewrite module (required for Drupal).
+      community.general.apache2_module:
+        name: rewrite
+        state: present
+      notify: Restart Apache.
+
+    - name: Add Apache virtualhost for Drupal.
+      ansible.builtin.template:
+        src: templates/drupal.test.conf.jinja
+        dest: '/etc/apache2/sites-available/{{ domain }}.test.conf'
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart Apache.
+
+    - name: Enable the Drupal site.
+      ansible.builtin.command:
+        cmd: 'a2ensite {{ domain }}.test'
+        creates: '/etc/apache2/sites-enabled/{{ domain }}.test.conf'
+
+    - name: Disable the default site.
+      ansible.builtin.command:
+        cmd: a2dissite 000-default
+        removes: '/etc/apache2/sites-enabled/000-default.conf'
+      notify: Restart Apache.
+
+    - name: Adjust OpCache memory setting.
+      ansible.builtin.lineinfile:
+        dest: '/etc/php/7.4/apache2/conf.d/10-opcache.ini'
+        regex: '^opcache.memory_consumption'
+        line: 'opcache.memory_consumption = 96'
+        state: present
+      notify: Restart Apache.
+
+    # Configure MySQL.
+    - name: Create a MySQL database for Drupal.
+      community.mysql.mysql_db:
+        db: '{{ domain }}'
+        state: present
+
+    - name: Create a MySQL user for Drupal.
+      community.mysql.mysql_user:
+        name: '{{ domain }}'
+        password: '1234'
+        priv: '{{ domain }}.*:ALL'
+        host: localhost
+        state: present
+
+    # Install Composer.
+    - name: Download Composer installer.
+      ansible.builtin.get_url:
+        url: https://getcomposer.org/installer
+        dest: /tmp/composer_installer.php
+        mode: '0755'
+
+    - name: Run Composer installer.
+      ansible.builtin.command:
+        cmd: php composer_installer.php
+        chdir: /tmp
+        creates: /usr/local/bin/composer
+
+    - name: Move Composer into globally-accessible location.
+      ansible.builtin.command:
+        cmd: mv /tmp/composer.phar /usr/local/bin/composer
+        creates: /usr/local/bin/composer
+
+    # Create a Drupal project with Composer.
+    - name: Ensure Drupal directory exists.
+      ansible.builtin.file:
+        path: '{{ drupal_core_path }}'
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Check if Drupal project already exists.
+      ansible.builtin.stat:
+        path: '{{ drupal_core_path }}/composer.json'
+      register: drupal_composer_json
+
+    - name: Create Drupal project.
+      community.general.composer:
+        command: create-project
+        arguments: 'drupal/recommended-project {{ drupal_core_path }}'
+        working_dir: '{{ drupal_core_path }}'
+        no_dev: true
+      become_user: www-data
+      when: not drupal_composer_json.stat.exists
+
+    # install Drupal with Drush.
+    - name: Add drush to the Drupal site with Composer.
+      community.general.composer:
+        command: require
+        arguments: drush/drush:10.*
+        working_dir: '{{ drupal_core_path }}'
+      become_user: www-data
+      when: not drupal_composer_json.stat.exists
+
+    - name: Install Drupal.
+      ansible.builtin.command:
+        cmd: >
+          vendor/bin/drush site-install -y --site-name={{ drupal_site_name }}
+          --account-name=admin
+          --account-pass=admin
+          --db-url=mysql://{{ domain }}:1234@localhost/{{ domain }}
+          --root={{ drupal_core_path }}/web
+        chdir: '{{ drupal_core_path }}'
+        creates: '{{ drupal_core_path }}/web/sites/default/settings.php'
+      notify: Restart Apache.
+      become_user: www-data
+
+
+  handlers:
+    - name: Restart Apache.
+      ansible.builtin.service:
+        name: apache2
+        state: restarted
+...

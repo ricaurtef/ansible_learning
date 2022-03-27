@@ -1,0 +1,21 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Get docker's installation script.
+  hosts: localhost
+  gather_facts: False
+  # vars:
+  #   - tmp_dir: '/tmp'
+  #   - tmp_file: 'install_docker.sh'
+  tasks:
+    - command: wget --no-check-certificate https://get-docker.com
+      args:
+        creates: '{{ tmp_dir }}/{{ tmp_file }}'
+
+- name: Run docker's installation script.
+  hosts: vagrant1
+  gather_facts: False
+  tasks:
+    - script: '{{ tmp_dir }}/{{ tmp_file }}'
+      args:
+        creates: /etc/docker/Readme.md
+      become: True

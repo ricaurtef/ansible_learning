@@ -1,0 +1,22 @@
+---
+- name: My first play.
+  hosts: all
+  strategy: free
+
+  tasks:
+    - name: Install software.
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+        state: present
+        pkg:
+          - bash-completion
+          - vim
+          - tree
+          - nano
+      become: true
+
+    - name: Show hostname.
+      ansible.builtin.debug:
+        msg: 'This host is {{ ansible_hostname }}.'
+...

@@ -1,0 +1,25 @@
+---
+- name: Manage User Account.
+  hosts: all
+  gather_facts: false
+  strategy: free
+
+  tasks:
+    - name: Create user.
+      ansible.builtin.user:
+        user: '{{ user_name }}'
+        shell: /bin/bash
+        comment: Administrative User    # Gecko
+        password: '{{ "1nux2014" | password_hash("sha512") }}'
+        update_password: on_create
+      become: true
+      when: user_state | lower() == 'add'
+
+    - name: Delete user.
+      ansible.builtin.user:
+        user: '{{ user_name }}'
+        state: absent
+        remove: true     # Removes home, spool and cron files.
+      become: true
+      when: user_state | lower() == 'delete'
+...

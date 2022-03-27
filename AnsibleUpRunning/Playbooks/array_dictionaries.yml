@@ -1,0 +1,14 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Example of array of hashes (dictionaries).
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - ansible.builtin.debug:
+        msg: '{{ item.src }} -> {{ item.dst }}'
+      loop:
+        - src: /home/foo
+          dst: /path/to/destination_1
+        - src: /home/bar
+          dst: /path/to/destination_2

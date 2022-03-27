@@ -1,0 +1,15 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Integer loop - with_sequence.
+  hosts: all
+  remote_user: ansible
+  gather_facts: False
+  tasks:
+    - name: Create the folders /tmp/dirXY with XY from 1 to 10.
+      file:
+        dest: '/tmp/{{ item }}'
+        state: directory
+        mode: '0644'
+      # with_sequence: start=1 end=10
+      # shortcut form: [start-]end[/stride][:format]
+      with_sequence: 1-10:dir%02d

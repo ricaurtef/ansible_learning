@@ -1,0 +1,21 @@
+---
+- name: Manage the /etc/motd file.
+  hosts: all
+
+  tasks:
+    - name: Copy /etc/motd.
+    # Method 1: Copy module.
+    #   ansible.builtin.copy:
+    #     dest: /etc/motd
+    #     content: |
+    #       This system is managed by Ansible.
+    #       The system name is {{ ansible_hostname }}
+    #       The IP address is {{ ansible_default_ipv4.address }}
+    #   become: true
+
+    # Method 2: Template module.
+      ansible.builtin.template:
+        src: templates/motd.jinja
+        dest: /etc/motd
+        mode: '0644'
+      become: true

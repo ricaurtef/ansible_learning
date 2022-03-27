@@ -1,0 +1,11 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Testing the "trim" jinja2 filter.
+  hosts: localhost
+  gather_facts: false
+  vars:
+    spam: '053a'
+
+  tasks:
+    - debug:
+        var: spam | trim('0')

@@ -1,0 +1,21 @@
+---
+- name: Install Apache.
+  hosts: all
+  gather_facts: false
+  vars:
+    apache_pkg: apache2
+
+  tasks:
+    - name: Install apache package.
+      ansible.builtin.apt:
+        pkg: '{{ apache_pkg }}'
+        state: present
+      become: true
+
+    - name: Copy web content.
+      ansible.builtin.copy:
+        src: web/   # Copy directory content as rsync.
+        directory_mode: true
+        dest: /var/www/html
+        mode: '0644'
+      become: true

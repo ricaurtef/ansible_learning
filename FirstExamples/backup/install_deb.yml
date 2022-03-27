@@ -1,0 +1,18 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Install a given debian package.
+  hosts: localhost
+  become: True
+  gather_facts: False
+  vars_prompt:
+    - name: packages
+      prompt: 'Name package(s)'
+      private: no
+  tasks:
+    - name: Installation.
+      apt:
+        pkg: '{{ package }}'
+        state: present
+        cache_valid_time: 3600
+      vars:
+        package: '{{ packages.split(" ") }}'

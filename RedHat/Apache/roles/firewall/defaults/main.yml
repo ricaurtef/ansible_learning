@@ -1,0 +1,4 @@
+---
+firewall_pkg: ufw
+service_name: http
+...

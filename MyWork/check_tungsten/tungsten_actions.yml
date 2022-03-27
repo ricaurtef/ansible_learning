@@ -1,0 +1,54 @@
+---
+- name: 'Start, stop or get tungsten status.'
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Get list of tungsten instances.
+      shell:
+        cmd: ls | grep -E '^[0-9]*[0-9][a-z]?$'
+        chdir: '/{{ tungsten_dir }}'
+      register: instances
+
+    - set_fact:
+        instances_list: '{{ instances.stdout_lines }}'
+        command: '/{{ tungsten_bin }} {{ operation }}'
+
+    - name: 'Running: {{ command }}'
+      shell:
+        cmd: /{{ tungsten_dir }}/{{ item }}/{{ tungsten_bin }} {{ operation }}
+      register: command_output
+      failed_when: false
+      loop: '{{ instances_list }}'
+      become: true
+
+    - local_action:
+        module: blockinfile
+        dest: '{{ temp_file }}'
+        marker: "[{mark}] {{ inventory_hostname }}: {{ item.item }}"
+        block: >
+            {{ inventory_hostname }}
+            {{ item.item }}
+            {{ item.stdout.split(':')[2].split(',')[0] | default('-', true) }}
+            {{ item.stdout.split(':')[-1] }}
+      changed_when: false
+      loop: '{{ command_output.results }}'
+      when: operation == 'status' and item.rc == 0
+
+    - local_action:
+        module: blockinfile
+        dest: '{{ temp_file }}'
+        marker: "[{mark}] {{ inventory_hostname }}: {{ item.item }}"
+        block: >
+            {{ inventory_hostname }}
+            {{ item.item }}
+            ---
+            STOPPED
+      changed_when: false
+      loop: '{{ command_output.results }}'
+      when: operation == 'status' and item.rc != 0
+
+    # - debug:
+    #     var: item.stdout.split(':')
+    #   loop: '{{ command_output.results }}'
+    #   when: operation == 'status'

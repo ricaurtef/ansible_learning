@@ -1,0 +1,13 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Check out a Git repository onto a remote host.
+  hosts: webservers
+  gather_facts: false
+
+  tasks:
+    - name: Check out the repository on the host.
+      ansible.builtin.git:
+        repo: '{{ repo_url }}'
+        dest: '{{ dest_path }}'  # Path on remote host.
+        accept_hostkey: yes  # Ensure that "-o StrictHostKeyChecking=no" is \
+                             # present as an ssh option.

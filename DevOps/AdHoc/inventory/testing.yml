@@ -1,0 +1,20 @@
+---
+# Application servers.
+app:
+  hosts:
+    192.168.121.192:
+    192.168.121.52:
+
+# Database server.
+db:
+  hosts:
+    192.168.121.182:
+
+# Group 'multi' with all servers.
+multi:
+  children:
+    app:
+    db:
+  vars:
+    ansible_user: vagrant
+...

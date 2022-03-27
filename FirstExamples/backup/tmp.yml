@@ -1,0 +1,16 @@
+---
+'{{ database_host | default("localhost") }}'
+
+# Making a tasks fail after some ouput is given.
+- name: Run Myprog
+  command: /opt/myprog
+  register: result
+  ignore_errors: True
+
+- debug:
+    var: result
+
+- debug:
+    msg: Stop running the playbook if myprog failed
+  failed_when: result|failed
+# more tasks here...

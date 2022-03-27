@@ -1,0 +1,25 @@
+---
+- name: Upgrade Systems.
+  hosts: all
+  vars:
+    ubuntu_version: 16.04.7
+
+  tasks:
+    - name: Print host details.
+      ansible.builtin.debug:
+        msg: |
+          {{ inventory_hostname | upper() }} Details:
+            + Hostname: {{ ansible_hostname }}
+            + Distro: {{ ansible_distribution }}
+            + Version: {{ ansible_distribution_version }}
+
+    - name: Upgrade older systems.
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        pkg: '*'
+        state: latest
+      when:
+        - ansible_lsb.id | lower() == 'ubuntu'
+        - ubuntu_version not in ansible_lsb.description
+...
